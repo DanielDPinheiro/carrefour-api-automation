@@ -1,0 +1,16 @@
+node_modules/
+
+allure-results/
+allure-report/
+playwright-report/
+test-results/
+
+coverage/
+
+.env
+
+.vscode/
+
+*.log
+Thumbs.db
+.DS_Store
