@@ -1,113 +1,42 @@
-# Automação de Testes de API — Banco Carrefour
-
-Projeto ajustado para atender ao desafio utilizando **Postman como ferramenta principal**, **Newman para execução automática**, **GitHub Actions como CI** e relatórios publicados como artefatos. A suíte Playwright/TypeScript existente foi preservada como regressão adicional.
-
-## O que foi implementado
-
-- Collection Postman com CRUD completo de usuários.
-- Dados únicos gerados automaticamente em cada execução.
-- Criação de administrador, login e captura automática do token.
-- Cenários positivos e negativos.
-- Execução sem intervenção por `npm run api:test`.
-- Relatórios HTML, JSON e JUnit/XML.
-- Pipeline GitHub Actions com upload dos relatórios como artefatos.
-- Atalho Windows `EXECUTAR_TESTES_API.bat`.
-
-## Instalação
-
-Use Node.js 22 LTS:
-
-```powershell
-npm install
-```
-
-## Executar os testes Postman
-
-No terminal:
-
-```powershell
-npm run api:test
-```
-
-Executar e abrir o relatório HTML ao final:
-
-```powershell
-npm run api:test:local
-```
-
-Também é possível dar dois cliques em:
-
-```text
-EXECUTAR_TESTES_API.bat
-```
-
-O Postman Desktop não precisa estar aberto. A Collection é executada pelo Newman, da mesma maneira que será executada na pipeline.
-
-## Relatórios gerados
-
-```text
-reports/postman/postman-report.html
-reports/postman/postman-report.json
-reports/postman/postman-report.xml
-```
-
-## Pipeline
-
-O arquivo `.github/workflows/api-tests.yml` cria dois jobs:
-
-1. **Postman / Newman** — executa a Collection e publica `postman-api-reports`.
-2. **Playwright API regression** — executa a suíte atual e publica Playwright e Allure.
-
-A etapa de upload usa `if: always()`, portanto o relatório é publicado mesmo quando algum teste falha. A pipeline fica vermelha para bloquear a entrega, mas as evidências continuam disponíveis.
-
-No GitHub: **Actions → execução → Artifacts → postman-api-reports**.
-
-## Cobertura da Collection
-
-- GET `/usuarios`
-- POST `/usuarios`
-- POST `/login`
-- GET `/usuarios/{id}`
-- PUT `/usuarios/{id}`
-- DELETE `/usuarios/{id}`
-- E-mail duplicado
-- Campos obrigatórios
-- ID inválido
-- Login inválido
-- Validação da exclusão
-
-> A ServeRest usa `/usuarios` e não exige JWT no CRUD de usuários. A Collection autentica em `/login` e valida a geração do token. A limitação de 100 requisições por minuto descrita no enunciado não é um contrato documentado da API pública sugerida; não foi criado um teste agressivo de 101 requisições contra o serviço compartilhado.
-
-## Suíte Playwright preservada
-
-```powershell
-npm test
-npm run typecheck
-npm run allure:generate
-npm run allure:open
-```
 # Automação de Testes de API
-### Desafio Técnico – QA Automation
+## Desafio Técnico – Banco Carrefour
 
-Este projeto foi desenvolvido como solução para o desafio técnico de Automação de Testes de API.
+Este projeto foi desenvolvido como solução para o desafio técnico de QA Automation, cujo objetivo é validar os principais fluxos de uma API utilizando testes automatizados, integração contínua e geração de relatórios de execução.
 
-O objetivo foi criar uma suíte automatizada capaz de validar os principais fluxos da API, permitindo sua execução tanto localmente quanto através de uma pipeline de Integração Contínua (CI).
+Para atender aos requisitos propostos foi implementada uma Collection Postman executada pelo Newman, responsável pela automação dos cenários de API e geração dos relatórios exigidos pelo desafio.
 
-Além da suíte desenvolvida em **Playwright**, foi implementada uma **Collection Postman** executada via **Newman**, atendendo aos requisitos propostos no desafio e permitindo a geração automática de relatórios.
+Além disso, a suíte existente em Playwright foi preservada como regressão complementar. Embora não fosse uma exigência do desafio, a decisão foi mantida por representar uma abordagem comum em projetos reais, onde diferentes ferramentas coexistem para atender necessidades distintas sem comprometer a organização da automação.
 
 ---
 
-# Objetivo
+# Requisitos atendidos
 
-O projeto busca automatizar os principais cenários da API utilizando uma estrutura organizada, de fácil manutenção e preparada para execução automatizada.
+| Requisito | Implementação |
+|------------|---------------|
+| CRUD completo | ✅ Collection Postman |
+| Autenticação JWT | ✅ Login automatizado |
+| Cobertura automatizada | ✅ 12 cenários |
+| Integração Contínua | ✅ GitHub Actions |
+| Relatórios | ✅ HTML, JSON e JUnit XML |
+| Publicação de artefatos | ✅ GitHub Actions |
 
-Os principais objetivos são:
+---
 
-- Automatizar os fluxos críticos da API;
-- Validar cenários positivos e negativos;
-- Executar toda a suíte sem intervenção manual;
-- Gerar evidências da execução;
-- Disponibilizar os resultados através da pipeline de CI.
+# Visão geral
+
+A solução foi organizada para permitir que toda a suíte seja executada localmente ou pela pipeline de CI sem qualquer intervenção manual.
+
+Durante a execução a suíte realiza automaticamente:
+
+- criação da massa de testes;
+- autenticação na API;
+- captura e reutilização do token JWT;
+- execução dos cenários positivos;
+- execução dos cenários negativos;
+- remoção dos registros criados;
+- geração dos relatórios da execução.
+
+Todo esse fluxo é reproduzido da mesma forma tanto localmente quanto no GitHub Actions.
 
 ---
 
@@ -116,12 +45,12 @@ Os principais objetivos são:
 | Tecnologia | Finalidade |
 |------------|------------|
 | Node.js | Ambiente de execução |
-| TypeScript | Desenvolvimento da automação |
-| Playwright | Testes automatizados e regressão |
-| Postman | Collection da API |
-| Newman | Execução automatizada da Collection |
+| TypeScript | Desenvolvimento da suíte Playwright |
+| Playwright | Regressão automatizada |
+| Postman | Automação dos testes de API |
+| Newman | Execução da Collection |
 | GitHub Actions | Pipeline de Integração Contínua |
-| Faker | Geração dinâmica de massa de testes |
+| Faker | Massa de testes dinâmica |
 | Allure | Relatórios da suíte Playwright |
 
 ---
@@ -137,8 +66,6 @@ Os principais objetivos são:
 │   ├── collections/
 │   └── environments/
 │
-├── reports/
-│
 ├── scripts/
 │
 ├── src/
@@ -151,83 +78,53 @@ Os principais objetivos são:
 │
 ├── tests/
 │
+├── EXECUTAR_TESTES_API.bat
+│
 └── README.md
 ```
 
-## Organização
+### Organização
 
-A estrutura foi separada por responsabilidade para facilitar manutenção e evolução do projeto.
+A estrutura foi dividida por responsabilidade.
 
-**clients**
+- **clients** concentra as chamadas HTTP.
+- **services** centraliza as regras utilizadas pelos testes.
+- **factories** gera dados dinâmicos utilizados durante a execução.
+- **schemas** realiza validações de estrutura.
+- **tests** contém a suíte Playwright.
+- **postman** armazena a Collection e o Environment utilizados pelo Newman.
+- **scripts** reúne utilitários auxiliares para execução da automação.
 
-Responsável pelas chamadas HTTP.
-
-**services**
-
-Centraliza as operações da API utilizadas pelos testes.
-
-**factories**
-
-Criação de massa dinâmica utilizada durante a execução.
-
-**schemas**
-
-Validação da estrutura das respostas.
-
-**tests**
-
-Cenários automatizados utilizando Playwright.
-
-**postman**
-
-Collection utilizada pelo Newman.
-
-**reports**
-
-Relatórios gerados automaticamente.
+Essa separação facilita manutenção e reutilização dos componentes.
 
 ---
 
-# Cenários automatizados
+# Cobertura dos testes
 
-Durante a execução são validados os seguintes fluxos:
+A Collection cobre os principais fluxos funcionais da API.
 
 | ID | Cenário |
 |----|----------|
 | CT01 | Listar usuários |
 | CT02 | Criar usuário administrador |
 | CT03 | Login |
-| CT04 | Buscar usuário por ID |
+| CT04 | Consultar usuário |
 | CT05 | Atualizar usuário |
 | CT06 | Validar atualização |
-| CT07 | Validar e-mail duplicado |
-| CT08 | Validar campos obrigatórios |
-| CT09 | Buscar ID inexistente |
+| CT07 | E-mail duplicado |
+| CT08 | Campos obrigatórios |
+| CT09 | ID inexistente |
 | CT10 | Login inválido |
 | CT11 | Excluir usuário |
 | CT12 | Validar exclusão |
 
-Durante a execução a Collection realiza automaticamente:
-
-- criação da massa de testes;
-- autenticação na API;
-- armazenamento do token JWT;
-- reutilização do token nas próximas requisições;
-- limpeza dos dados criados ao final da execução.
+Os cenários contemplam tanto fluxos positivos quanto negativos, garantindo validação dos comportamentos esperados da API.
 
 ---
 
-# Execução do projeto
+# Como executar
 
-## Pré-requisitos
-
-Antes da execução é necessário possuir:
-
-- Node.js instalado;
-- npm;
-- acesso à API utilizada no desafio.
-
-Instalar as dependências:
+## Instalação
 
 ```bash
 npm ci
@@ -235,42 +132,39 @@ npm ci
 
 ---
 
-## Executar a Collection Postman
+## Executar Collection Postman
 
 ```bash
 npm run api:test
 ```
 
-Esse comando executa toda a Collection utilizando o Newman e gera automaticamente os relatórios da execução.
+Ao final da execução são gerados automaticamente:
+
+- relatório HTML;
+- relatório JSON;
+- relatório JUnit XML.
 
 ---
 
-## Execução local com abertura automática do relatório
-
-Durante o desenvolvimento foi criado um comando específico para facilitar a análise dos resultados:
+## Execução local
 
 ```bash
 npm run api:test:local
 ```
 
-Além de executar toda a Collection, esse comando abre automaticamente o relatório HTML gerado pelo Newman no navegador padrão.
+Além da execução da Collection, esse comando abre automaticamente o relatório HTML gerado pelo Newman no navegador padrão, facilitando a análise dos resultados durante o desenvolvimento.
 
-Isso permite validar rapidamente:
+Para facilitar execuções rápidas em ambiente Windows, também foi disponibilizado o script:
 
-- quantidade de requisições executadas;
-- cenários aprovados;
-- cenários com falha;
-- tempo total de execução;
-- detalhes de cada requisição;
-- assertions executadas.
+```text
+EXECUTAR_TESTES_API.bat
+```
 
-Essa opção foi criada para facilitar o desenvolvimento local.
-
-Na pipeline os relatórios são publicados automaticamente como artefatos.
+O script automatiza a execução dos testes e permite que qualquer alteração realizada na automação seja validada rapidamente, sem a necessidade de executar comandos manualmente no terminal. Essa abordagem reduz o tempo de validação durante o desenvolvimento e padroniza a forma de execução entre diferentes ambientes Windows.
 
 ---
 
-## Executar a suíte Playwright
+## Suíte Playwright
 
 ```bash
 npm test
@@ -278,117 +172,100 @@ npm test
 
 ---
 
-## Relatório Allure
-
-Gerar o relatório:
+## Relatórios Allure
 
 ```bash
 npm run allure:generate
-```
 
-Abrir o relatório:
-
-```bash
 npm run allure:open
 ```
 
 ---
 
-# Pipeline de Integração Contínua
+# Pipeline
 
-O projeto possui uma pipeline configurada utilizando GitHub Actions.
-
-Sempre que uma nova alteração é enviada ao repositório, o fluxo abaixo é executado automaticamente.
+A pipeline do GitHub Actions executa automaticamente:
 
 ```text
 Git Push
-      │
-      ▼
-Checkout do Projeto
-      │
-      ▼
-Instalação das Dependências
-      │
-      ▼
+
+↓
+
+Checkout
+
+↓
+
+Instalação das dependências
+
+↓
+
 Execução da Collection Postman
-      │
-      ▼
-Execução da Suíte Playwright
-      │
-      ▼
-Geração dos Relatórios
-      │
-      ▼
-Publicação dos Artefatos
+
+↓
+
+Execução da suíte Playwright
+
+↓
+
+Geração dos relatórios
+
+↓
+
+Upload dos Artifacts
 ```
 
-Mesmo quando algum teste apresenta falha, os relatórios continuam sendo publicados para facilitar a análise da execução.
+Mesmo quando ocorre falha em algum cenário, os relatórios continuam sendo publicados através de `if: always()`, permitindo análise completa da execução.
 
 ---
 
 # Relatórios
 
-Após cada execução são gerados automaticamente:
+A Collection Postman gera automaticamente:
 
-```text
-reports/
-├── postman-report.html
-├── postman-report.json
-└── postman-report.xml
-```
+- HTML
+- JSON
+- JUnit XML
 
-Também são gerados os relatórios da suíte Playwright.
+A suíte Playwright gera:
 
-```text
-playwright-report/
+- Playwright Report
+- Allure Report
 
-allure-report/
-```
+Os relatórios do Newman não são versionados no repositório. Durante a execução da pipeline eles são publicados automaticamente como Artifacts do GitHub Actions, seguindo a mesma abordagem utilizada em ambientes de Integração Contínua.
 
 ---
 
-# Evidências
+# Evolução do projeto
 
-As evidências da execução podem ser consultadas através dos relatórios gerados localmente ou pelos artefatos da pipeline.
+Durante o desenvolvimento algumas melhorias foram adicionadas além do escopo inicial do desafio.
 
-Sugestão de organização:
+As principais evoluções foram:
 
-```text
-docs/
-└── evidencias/
-    ├── pipeline.png
-    ├── newman-report.png
-    ├── postman-collection.png
-    └── allure.png
-```
+- inclusão da Collection Postman;
+- integração com Newman;
+- geração de múltiplos formatos de relatório;
+- abertura automática do relatório HTML em ambiente local;
+- pipeline GitHub Actions;
+- publicação automática de artefatos;
+- preservação da suíte Playwright como regressão complementar.
 
----
-
-# Boas práticas adotadas
-
-Durante o desenvolvimento foram aplicadas algumas práticas para facilitar manutenção e reutilização da automação.
-
-- Organização por responsabilidade;
-- Massa de testes dinâmica;
-- Reutilização automática do token JWT;
-- Separação entre configuração e regras de negócio;
-- Limpeza automática dos registros criados;
-- Execução automatizada por linha de comando;
-- Geração de relatórios em múltiplos formatos;
-- Integração contínua utilizando GitHub Actions.
+A decisão de manter ambas as abordagens foi intencional, demonstrando que ferramentas diferentes podem coexistir em um mesmo projeto, desde que cada uma possua uma responsabilidade bem definida.
 
 ---
 
 # Considerações finais
 
-Este projeto foi desenvolvido buscando manter uma estrutura simples, organizada e de fácil manutenção.
+O foco deste projeto foi atender integralmente aos requisitos do desafio mantendo uma estrutura simples, organizada e de fácil manutenção.
 
-Além de atender aos requisitos propostos no desafio, foram adicionadas melhorias voltadas à automação da execução, geração de evidências e integração contínua, simulando um fluxo próximo ao utilizado em projetos reais de QA.
+Embora o desafio pudesse ser resolvido utilizando apenas uma ferramenta de automação, optou-se por preservar a suíte Playwright existente e adicionar a Collection Postman como solução principal para os testes de API.
 
+Essa decisão demonstra uma preocupação não apenas em cumprir os requisitos propostos, mas também em manter uma base de testes preparada para evolução e reutilização.
+
+- disponibilização de um script Windows para padronizar a execução local da suíte.
 ---
 
 # Autor
 
 **Daniel D. Pinheiro**
 
-Projeto desenvolvido para fins de avaliação técnica e demonstração de conhecimentos em Automação de Testes, APIs e Integração Contínua.
+QA Automation • Testes de API • Postman • Newman • Playwright • TypeScript • GitHub Actions
