@@ -14,3 +14,11 @@ coverage/
 *.log
 Thumbs.db
 .DS_Store
+
+# Relatórios gerados automaticamente pelo Newman.
+# Durante a execução da pipeline esses arquivos são publicados
+# como Artifacts do GitHub Actions e, por isso, não são versionados.
+reports/postman/
+
+*.tmp
+*.cache

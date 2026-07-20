@@ -1,0 +1,603 @@
+{
+  "info": {
+    "_postman_id": "0e4e3b5f-7a31-4fd5-9a12-carrefourapi001",
+    "name": "Banco Carrefour - Automação API ServeRest",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "if (!pm.collectionVariables.get('runId')) {",
+          " const r=Date.now()+'-'+Math.random().toString(36).substring(2,8);",
+          " pm.collectionVariables.set('runId',r);",
+          " pm.collectionVariables.set('adminName','QA Carrefour '+r);",
+          " pm.collectionVariables.set('adminEmail','qa.carrefour.'+r+'@teste.com');",
+          " pm.collectionVariables.set('adminPassword','Qa@'+r+'A1');",
+          " pm.collectionVariables.set('updatedName','QA Carrefour Atualizado '+r);",
+          " pm.collectionVariables.set('updatedPassword','Upd@'+r+'B2');",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "runId",
+      "value": ""
+    },
+    {
+      "key": "adminId",
+      "value": ""
+    },
+    {
+      "key": "authToken",
+      "value": ""
+    },
+    {
+      "key": "adminName",
+      "value": ""
+    },
+    {
+      "key": "adminEmail",
+      "value": ""
+    },
+    {
+      "key": "adminPassword",
+      "value": ""
+    },
+    {
+      "key": "updatedName",
+      "value": ""
+    },
+    {
+      "key": "updatedPassword",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Fluxo automatizado completo",
+      "item": [
+        {
+          "name": "CT01 - Listar usuários",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+                  "const b=pm.response.json();",
+                  "pm.test(\"Contrato da listagem\", function(){ pm.expect(b.usuarios).to.be.an(\"array\"); pm.expect(b.quantidade).to.eql(b.usuarios.length); });",
+                  "pm.test(\"Tempo de resposta abaixo de 3000 ms\", function () { pm.expect(pm.response.responseTime).to.be.below(3000); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CT02 - Criar administrador",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"{{adminName}}\",\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\",\n  \"administrador\": \"true\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 201\", function(){ pm.response.to.have.status(201); });",
+                  "const b=pm.response.json();",
+                  "pm.test(\"Cadastro realizado\", function(){ pm.expect(b.message).to.eql(\"Cadastro realizado com sucesso\"); pm.expect(b._id).to.have.lengthOf(16); });",
+                  "pm.collectionVariables.set(\"adminId\", b._id);",
+                  "pm.test(\"Tempo de resposta abaixo de 3000 ms\", function () { pm.expect(pm.response.responseTime).to.be.below(3000); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CT03 - Login e token JWT",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function(){ pm.response.to.have.status(200); });",
+                  "const b=pm.response.json();",
+                  "pm.test(\"Token retornado\", function(){ pm.expect(b.authorization).to.be.a(\"string\").and.not.empty; });",
+                  "pm.collectionVariables.set(\"authToken\", b.authorization);",
+                  "pm.test(\"Tempo de resposta abaixo de 3000 ms\", function () { pm.expect(pm.response.responseTime).to.be.below(3000); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CT04 - Consultar por ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios/{{adminId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios",
+                "{{adminId}}"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function(){ pm.response.to.have.status(200); });",
+                  "const b=pm.response.json();",
+                  "pm.test(\"Dados persistidos\", function(){ pm.expect(b._id).to.eql(pm.collectionVariables.get(\"adminId\")); pm.expect(b.email).to.eql(pm.collectionVariables.get(\"adminEmail\")); });",
+                  "pm.test(\"Tempo de resposta abaixo de 3000 ms\", function () { pm.expect(pm.response.responseTime).to.be.below(3000); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CT05 - Atualizar usuário",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios/{{adminId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios",
+                "{{adminId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"{{updatedName}}\",\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{updatedPassword}}\",\n  \"administrador\": \"false\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function(){ pm.response.to.have.status(200); });",
+                  "pm.test(\"Atualizado\", function(){ pm.expect(pm.response.json().message).to.eql(\"Registro alterado com sucesso\"); });",
+                  "pm.test(\"Tempo de resposta abaixo de 3000 ms\", function () { pm.expect(pm.response.responseTime).to.be.below(3000); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CT06 - Validar atualização",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios/{{adminId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios",
+                "{{adminId}}"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function(){ pm.response.to.have.status(200); });",
+                  "const b=pm.response.json();",
+                  "pm.test(\"Atualização persistida\", function(){ pm.expect(b.nome).to.eql(pm.collectionVariables.get(\"updatedName\")); pm.expect(b.administrador).to.eql(\"false\"); });",
+                  "pm.test(\"Tempo de resposta abaixo de 3000 ms\", function () { pm.expect(pm.response.responseTime).to.be.below(3000); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CT07 - E-mail duplicado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Duplicado\",\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"Teste@123\",\n  \"administrador\": \"false\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 400\", function(){ pm.response.to.have.status(400); });",
+                  "pm.test(\"Mensagem correta\", function(){ pm.expect(pm.response.json().message).to.eql(\"Este email já está sendo usado\"); });",
+                  "pm.test(\"Tempo de resposta abaixo de 3000 ms\", function () { pm.expect(pm.response.responseTime).to.be.below(3000); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CT08 - Campos obrigatórios",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 400\", function(){ pm.response.to.have.status(400); });",
+                  "const b=pm.response.json();",
+                  "pm.test(\"Campos validados\", function(){ [\"nome\",\"email\",\"password\",\"administrador\"].forEach(f=>pm.expect(b).to.have.property(f)); });",
+                  "pm.test(\"Tempo de resposta abaixo de 3000 ms\", function () { pm.expect(pm.response.responseTime).to.be.below(3000); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CT09 - ID inválido",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios/id-inexistente",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios",
+                "id-inexistente"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 400\", function(){ pm.response.to.have.status(400); });",
+                  "pm.test(\"Validação do ID\", function(){ pm.expect(pm.response.json().id).to.eql(\"id deve ter exatamente 16 caracteres alfanuméricos\"); });",
+                  "pm.test(\"Tempo de resposta abaixo de 3000 ms\", function () { pm.expect(pm.response.responseTime).to.be.below(3000); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CT10 - Login inválido",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"senha-incorreta\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 401\", function(){ pm.response.to.have.status(401); });",
+                  "pm.test(\"Credenciais inválidas\", function(){ pm.expect(pm.response.json().message).to.eql(\"Email e/ou senha inválidos\"); });",
+                  "pm.test(\"Tempo de resposta abaixo de 3000 ms\", function () { pm.expect(pm.response.responseTime).to.be.below(3000); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CT11 - Excluir usuário",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios/{{adminId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios",
+                "{{adminId}}"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function(){ pm.response.to.have.status(200); });",
+                  "pm.test(\"Excluído\", function(){ pm.expect(pm.response.json().message).to.eql(\"Registro excluído com sucesso\"); });",
+                  "pm.test(\"Tempo de resposta abaixo de 3000 ms\", function () { pm.expect(pm.response.responseTime).to.be.below(3000); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CT12 - Confirmar exclusão",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios/{{adminId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios",
+                "{{adminId}}"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 400\", function(){ pm.response.to.have.status(400); });",
+                  "pm.test(\"Não encontrado\", function(){ pm.expect(pm.response.json().message).to.eql(\"Usuário não encontrado\"); });",
+                  "pm.test(\"Tempo de resposta abaixo de 3000 ms\", function () { pm.expect(pm.response.responseTime).to.be.below(3000); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

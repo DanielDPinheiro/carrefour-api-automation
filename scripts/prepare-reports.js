@@ -1,0 +1,1 @@
+const fs=require('node:fs');const path=require('node:path');const d=path.resolve(process.cwd(),'reports','postman');fs.rmSync(d,{recursive:true,force:true});fs.mkdirSync(d,{recursive:true});console.log('Pasta preparada: '+d);
