@@ -1,0 +1,95 @@
+{
+  "info": {
+    "_postman_id": "e8bc0748-5efd-46b9-bdf0-carrefour-rate-limit",
+    "name": "Carrefour API - Validação de Rate Limit",
+    "description": "Collection exclusiva para validar o requisito não funcional de 100 requisições por minuto. A execução envia 101 chamadas ao endpoint GET /usuarios e espera HTTP 429 na 101ª chamada. Caso a API pública não implemente o contrato, a falha representa uma não conformidade entre requisito e ambiente.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "if (!pm.collectionVariables.get('rlStartedAt')) {",
+          "  pm.collectionVariables.set('rlStartedAt', Date.now());",
+          "  pm.collectionVariables.set('rlCounter', 0);",
+          "  pm.collectionVariables.set('rlStatuses', JSON.stringify([]));",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "CT13 - Validar limite de 100 requisições por minuto",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const limit = 100;",
+              "const total = 101;",
+              "let counter = Number(pm.collectionVariables.get('rlCounter') || 0) + 1;",
+              "let statuses = JSON.parse(pm.collectionVariables.get('rlStatuses') || '[]');",
+              "statuses.push(pm.response.code);",
+              "pm.collectionVariables.set('rlCounter', counter);",
+              "pm.collectionVariables.set('rlStatuses', JSON.stringify(statuses));",
+              "",
+              "if (counter < total) {",
+              "  postman.setNextRequest('CT13 - Validar limite de 100 requisições por minuto');",
+              "} else {",
+              "  const duration = Date.now() - Number(pm.collectionVariables.get('rlStartedAt'));",
+              "  const first429 = statuses.indexOf(429);",
+              "",
+              "  pm.test('As 101 requisições foram realizadas em menos de 60 segundos', function () {",
+              "    pm.expect(duration).to.be.below(60000);",
+              "  });",
+              "",
+              "  pm.test('A limitação não ocorre antes das 100 requisições permitidas', function () {",
+              "    pm.expect(first429).to.be.at.least(limit);",
+              "  });",
+              "",
+              "  pm.test('A 101ª requisição retorna HTTP 429', function () {",
+              "    pm.expect(pm.response.code).to.eql(429);",
+              "  });",
+              "",
+              "  console.log(JSON.stringify({",
+              "    requisito: '100 requisições por minuto',",
+              "    totalEnviado: total,",
+              "    duracaoMs: duration,",
+              "    primeiraResposta429: first429 >= 0 ? first429 + 1 : null,",
+              "    statusDa101Requisicao: pm.response.code,",
+              "    retryAfter: pm.response.headers.get('Retry-After'),",
+              "    statuses: statuses",
+              "  }, null, 2));",
+              "",
+              "  pm.collectionVariables.unset('rlStartedAt');",
+              "  pm.collectionVariables.unset('rlCounter');",
+              "  pm.collectionVariables.unset('rlStatuses');",
+              "  postman.setNextRequest(null);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/usuarios",
+          "host": ["{{baseUrl}}"],
+          "path": ["usuarios"]
+        },
+        "description": "Executa 101 chamadas dentro de uma única janela. As 100 primeiras devem ser aceitas e a 101ª deve retornar 429, conforme o requisito do desafio."
+      },
+      "response": []
+    }
+  ]
+}

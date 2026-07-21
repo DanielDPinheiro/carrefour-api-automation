@@ -1,14 +1,25 @@
 @echo off
-cd /d "%~dp0"
-title Desafio Carrefour - API
-if not exist node_modules\newman\bin\newman.js call npm install
-if errorlevel 1 goto erro
+title Banco Carrefour - API Tests
+
+echo ============================================
+echo      BANCO CARREFOUR - API AUTOMATION
+echo ============================================
+echo.
+
+echo Executando CT01 ao CT12...
 call npm run api:test:local
-if errorlevel 1 goto erro
-echo Testes concluidos com sucesso.
+
+echo.
+echo ============================================
+echo Testes finalizados.
+echo ============================================
+echo.
+
+echo Para executar os testes de Rate Limit utilize:
+echo.
+echo   npm run test:ratelimit
+echo   npm run test:ratelimit:strict
+echo   npm run postman:ratelimit
+echo.
+
 pause
-exit /b 0
-:erro
-echo Execucao com falhas. Consulte reports\postman.
-pause
-exit /b 1

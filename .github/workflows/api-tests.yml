@@ -1,23 +1,36 @@
 name: API Tests - Postman e Playwright
+
 on:
   push:
-    branches: [main, develop]
+    branches:
+      - main
+      - develop
   pull_request:
-    branches: [main]
+    branches:
+      - main
   workflow_dispatch:
+
 jobs:
   postman-tests:
     name: Postman / Newman
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
+
       - name: Install dependencies
-        run: npm install
+        run: npm ci
+
       - name: Run Postman collection
         run: npm run api:test
+
       - name: Upload Postman reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -26,39 +39,95 @@ jobs:
           path: reports/postman/
           if-no-files-found: warn
           retention-days: 30
+
   playwright-tests:
     name: Playwright API regression
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
+
       - name: Install dependencies
-        run: npm install
+        run: npm ci
+
       - name: Validate TypeScript
         run: npm run typecheck
-      - name: Run Playwright tests
+
+      - name: Run Playwright functional tests
         run: npm test
         env:
           BASE_URL: https://serverest.dev
+          RUN_RATE_LIMIT: "false"
+
       - name: Generate Allure report
         if: always()
         run: npm run allure:generate
         continue-on-error: true
+
       - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
+          name: playwright-functional-report
           path: playwright-report/
           if-no-files-found: warn
           retention-days: 30
+
       - name: Upload Allure report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: allure-report
+          name: allure-functional-report
           path: allure-report/
+          if-no-files-found: warn
+          retention-days: 30
+
+  rate-limit-contract:
+    name: Rate Limit contract - 100 req/min
+    runs-on: ubuntu-latest
+    continue-on-error: true
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate Rate Limit requirement
+        run: npm run test:ratelimit:strict
+        env:
+          BASE_URL: https://serverest.dev
+          RUN_RATE_LIMIT: "true"
+          RATE_LIMIT_STRICT: "true"
+
+      - name: Generate Rate Limit Allure report
+        if: always()
+        run: npm run allure:generate
+        continue-on-error: true
+
+      - name: Upload Rate Limit evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rate-limit-evidence
+          path: |
+            playwright-report/
+            test-results/
+            allure-results/
+            allure-report/
           if-no-files-found: warn
           retention-days: 30

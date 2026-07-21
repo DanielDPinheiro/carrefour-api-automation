@@ -20,7 +20,10 @@
     "postman:test": "node scripts/prepare-reports.js && newman run postman/collections/carrefour-api.postman_collection.json -e postman/environments/serverest.postman_environment.json -r cli,htmlextra,json,junit --reporter-htmlextra-export reports/postman/postman-report.html --reporter-json-export reports/postman/postman-report.json --reporter-junit-export reports/postman/postman-report.xml",
     "postman:open-report": "node scripts/open-report.js",
     "api:test:local": "npm run postman:test && npm run postman:open-report",
-    "ci:api": "npm run typecheck && npm run postman:test && npm test"
+    "ci:api": "npm run typecheck && npm run postman:test && npm test",
+    "test:ratelimit": "cross-env RUN_RATE_LIMIT=true playwright test tests/non-functional/rate-limit.spec.ts",
+    "test:ratelimit:strict": "cross-env RUN_RATE_LIMIT=true RATE_LIMIT_STRICT=true playwright test tests/non-functional/rate-limit.spec.ts",
+    "postman:ratelimit": "node scripts/prepare-reports.js && newman run postman/collections/carrefour-rate-limit.postman_collection.json -e postman/environments/serverest.postman_environment.json -r cli,htmlextra,json,junit --reporter-htmlextra-export reports/postman/rate-limit-report.html --reporter-json-export reports/postman/rate-limit-report.json --reporter-junit-export reports/postman/rate-limit-report.xml"
   },
   "repository": {
     "type": "git",
@@ -42,7 +45,8 @@
     "ts-node": "^10.9.2",
     "typescript": "^7.0.2",
     "newman": "^6.2.1",
-    "newman-reporter-htmlextra": "^1.23.1"
+    "newman-reporter-htmlextra": "^1.23.1",
+    "cross-env": "^7.0.3"
   },
   "dependencies": {
     "dotenv": "^17.4.2"

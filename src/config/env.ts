@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 export const env = {
-  BASE_URL: process.env.BASE_URL ?? '',
+  BASE_URL: process.env.BASE_URL ?? 'https://serverest.dev',
   EMAIL_ADMIN: process.env.EMAIL_ADMIN ?? '',
   PASSWORD_ADMIN: process.env.PASSWORD_ADMIN ?? '',
   TOKEN: process.env.TOKEN ?? ''
